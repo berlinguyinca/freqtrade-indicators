@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 from numpy.core.records import ndarray
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, isna
 
 from .overlap_studies import sma, vwma, zema
 
@@ -1259,4 +1259,29 @@ def tv_hma(dataframe: DataFrame, length: int = 9, field="close") -> DataFrame:
     dataframe["tv_hma"] = tv_wma(dataframe, math.floor(math.sqrt(length)), field="h")
     dataframe.drop("h", inplace=True, axis=1)
 
+    return dataframe
+
+
+def rma(dataframe: DataFrame, length: int = 15, field="close") -> DataFrame:
+    """
+    Source: Tradingview rma
+    Pinescript Author: Unknown
+
+    Args :
+        dataframe : Pandas Dataframe
+        length : RMA length
+        field : Field to use for the calculation
+
+    Returns :
+        dataframe : Pandas DataFrame with new column 'tv_rma'
+    """
+    alpha = 1.0 / length
+    series = dataframe[field]
+
+    for i in range(1, series.size):
+        series.iloc[i] = series.iloc[i] * alpha + (1 - alpha) * (
+            series.iloc[i - 1] if not isna(series.iloc[i - 1]) else 0
+        )
+
+    dataframe["rv_rma"] = series
     return dataframe
